@@ -103,49 +103,53 @@ class Router
     {
         $currentDir = dirname($_SERVER['SCRIPT_NAME']);
 
-        foreach ($this->routes->all() as $routes) {
+            foreach ($this->routes->all() as $routes) {
+
             // compare server request method with route's allowed http methods
-            if (! in_array($requestMethod, (array)$routes->getMethods(), true)) {
-                continue;
-            }
-
-            if ('/' !== $currentDir) {
-                $requestUrl = str_replace($currentDir, '', $requestUrl);
-            }
-
-            $route = rtrim($routes->getRegex(), '/');
-            $pattern = '[^' . preg_quote($this->basePath) . $route . '/?$]i';
-            if (!preg_match($pattern, $requestUrl, $matches)) {
-                continue;
-            }
-
-            $params = array();
-
-            if (preg_match_all('/:([\w-%]+)/', $routes->getUrl(), $argument_keys)) {
-                // grab array with matches
-                $argument_keys = $argument_keys[1];
-
-                // check arguments number
-
-                if(count($argument_keys) !== (count($matches) -1)) {
+                if (! in_array($requestMethod, (array)$routes->getMethods(), true)) {
                     continue;
                 }
 
+                if ('/' !== $currentDir) {
+                    $requestUrl = str_replace($currentDir, '', $requestUrl);
+                }
+
+                $route = rtrim($routes->getRegex(), '/');
+                $pattern = '[^' . preg_quote($this->basePath) . $route . '/?$]i';
+
+                if (!preg_match($pattern, $requestUrl, $matches)) {
+                    continue;
+                }
+
+                $params = array();
+
+                if (preg_match_all('/:([\w\-%]+)/', $routes->getUrl(), $argument_keys)) {
+
+                // grab array with matches
+                    $argument_keys = $argument_keys[1];
+
+                // check arguments number
+
+                    if(count($argument_keys) !== (count($matches) -1)) {
+                        continue;
+                    }
+
                 // loop trough parameter names, store matching value in $params array
-                foreach ($argument_keys as $key => $name) {
-                    if (isset($matches[$key+1])) {
-                        $params[$name] = $matches[$key+1];
+                    foreach ($argument_keys as $key => $name) {
+                        if (isset($matches[$key+1])) {
+                            $params[$name] = $matches[$key+1];
+                        }
                     }
                 }
+
+                $routes->setParameters($params);
+                $routes->dispatch();
+
+                return $routes;
             }
-
-            $routes->setParameters($params);
-            $routes->dispatch();
-
-            return $routes;
-        }
-
-        return false;
+            return false;
+        
+        
     }
 
     /**
