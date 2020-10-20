@@ -118,10 +118,10 @@ class Router
 
             $pattern = '[^' . preg_quote($this->basePath) . $route . '/?$]i';
             try{
-            if (!preg_match($pattern, $requestUrl, $matches)) {
-                continue;
+                if (!preg_match($pattern, $requestUrl, $matches)) {
+                    continue;
 
-            }
+                }
             }
             catch(\Exception $e){
                 echo json_encode(get_defined_vars(),JSON_PRETTY_PRINT);
@@ -204,22 +204,51 @@ class Router
      * @param array $config provide by Config::loadFromFile()
      * @return Router
      */
-    public static function parseConfig(array $config)
-    {
-        $collection = new RouteCollection();
-        foreach ($config['routes'] as $name => $route) {
-            $collection->attachRoute(new Route($route[0], array(
-                '_controller' => str_replace('.', '::', $route[1]),
-                'methods' => $route[2],
-                'name' => $name
-            )));
-        }
 
-        $router = new Router($collection);
-        if (isset($config['base_path'])) {
-            $router->setBasePath($config['base_path']);
-        }
-
-        return $router;
+    private function createResource($resourceName){
+        return [
+            'index'=>['/'.$resourceName,'\App\Controllers\\'.$resoureName.'index',"GET"],
+            'create'=>['/'.$resourceName,'\App\Controllers\\'.$resoureName.'index',"POST"],
+            'update'=>['/'.$resourceName,'\App\Controllers\\'.$resoureName.'index',"PUT"],
+            'delete'=>['/'.$resourceName,'\App\Controllers\\'.$resoureName.'index','DELETE'],
+            'show'=>['/'.$resourceName,'\App\Controllers\\'.$resoureName.'index',"GET"],
+        ]
     }
+
+    public static function parseConfig(array $config)
+    {   
+
+
+
+        $collection = new RouteCollection();
+        /* Rafa edit, here we are going to add the resources */
+        foreach($config['resources'] as $resource){
+            $routes = $this->createResource($resourceName);
+            foreach($routes as $name=>$route){
+               $collection->attachRoute(new Route($route[0], [
+                 '_controller' => str_replace('.', '::', $route[1]),
+                 'methods' => $route[2],
+                 'name' => $name
+             ]));
+           }
+       }
+
+
+       foreach ($config['routes'] as $name => $route) {
+        $collection->attachRoute(new Route($route[0], [
+         '_controller' => str_replace('.', '::', $route[1]),
+         'methods' => $route[2],
+         'name' => $name
+     ]));
+    }
+    print_r($collection);
+    die();
+
+    $router = new Router($collection);
+    if (isset($config['base_path'])) {
+        $router->setBasePath($config['base_path']);
+    }
+
+    return $router;
+}
 }
