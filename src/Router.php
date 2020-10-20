@@ -207,12 +207,12 @@ class Router
 
     private function createResource($resourceName){
         return [
-            'index'=>['/'.$resourceName,'\App\Controllers\\'.$resoureName.'index',"GET"],
-            'create'=>['/'.$resourceName,'\App\Controllers\\'.$resoureName.'index',"POST"],
-            'update'=>['/'.$resourceName,'\App\Controllers\\'.$resoureName.'index',"PUT"],
-            'delete'=>['/'.$resourceName,'\App\Controllers\\'.$resoureName.'index','DELETE'],
-            'show'=>['/'.$resourceName,'\App\Controllers\\'.$resoureName.'index',"GET"],
-        ]
+             'index'=>['/'.$resourceName,'\App\Controllers\\'.$resourceName.'Controller.index',"GET"],
+            'create'=>['/'.$resourceName,'\App\Controllers\\'.$resourceName.'Controller.create',"POST"],
+            'update'=>['/'.$resourceName,'\App\Controllers\\'.$resourceName.'Controller.update',"PUT"],
+            'delete'=>['/'.$resourceName,'\App\Controllers\\'.$resourceName.'Controller.delete','DELETE'],
+            'show'=>['/'.$resourceName,'\App\Controllers\\'.$resourceName.'Controller.show',"GET"],
+        ];
     }
 
     public static function parseConfig(array $config)
@@ -223,7 +223,7 @@ class Router
         $collection = new RouteCollection();
         /* Rafa edit, here we are going to add the resources */
         foreach($config['resources'] as $resource){
-            $routes = $this->createResource($resourceName);
+            $routes = static::createResource($resource);
             foreach($routes as $name=>$route){
                $collection->attachRoute(new Route($route[0], [
                  '_controller' => str_replace('.', '::', $route[1]),
@@ -241,8 +241,7 @@ class Router
          'name' => $name
      ]));
     }
-    print_r($collection);
-    die();
+   
 
     $router = new Router($collection);
     if (isset($config['base_path'])) {
